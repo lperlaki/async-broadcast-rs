@@ -1445,6 +1445,29 @@ pub struct Send<'a, T> {
     msg: Option<T>,
 }
 
+#[derive(Debug)]
+pub struct SendParts<T> {
+    listener: Option<EventListener>,
+    msg: Option<T>,
+}
+
+impl<'a, T> Send<'a, T> {
+    pub fn into_parts(self) -> SendParts<T> {
+        SendParts {
+            listener: self.listener,
+            msg: self.msg,
+        }
+    }
+
+    pub fn from_parts(sender: &'a Sender<T>, parts: SendParts<T>) -> Self {
+        Send {
+            sender,
+            listener: parts.listener,
+            msg: parts.msg,
+        }
+    }
+}
+
 impl<'a, T> Unpin for Send<'a, T> {}
 
 impl<'a, T: Clone> Future for Send<'a, T> {
@@ -1495,6 +1518,26 @@ impl<'a, T: Clone> Future for Send<'a, T> {
 pub struct Recv<'a, T> {
     receiver: &'a mut Receiver<T>,
     listener: Option<EventListener>,
+}
+
+#[derive(Debug)]
+pub struct RecvParts {
+    listener: Option<EventListener>,
+}
+
+impl<'a, T> Recv<'a, T> {
+    pub fn into_parts(self) -> RecvParts {
+        RecvParts {
+            listener: self.listener,
+        }
+    }
+
+    pub fn from_parts(receiver: &'a mut Receiver<T>, parts: RecvParts) -> Self {
+        Recv {
+            receiver,
+            listener: parts.listener,
+        }
+    }
 }
 
 impl<'a, T> Unpin for Recv<'a, T> {}
